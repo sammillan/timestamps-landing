@@ -9,6 +9,8 @@ interface WaitlistFormProps {
 
 type FormStatus = "idle" | "submitting" | "success" | "error";
 
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/maqbdarn";
+
 export default function WaitlistForm({
   showName = true,
   className = "",
@@ -16,25 +18,29 @@ export default function WaitlistForm({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [status, setStatus] = useState<FormStatus>("idle");
-
-  const formspreeId = process.env.NEXT_PUBLIC_FORMSPREE_ID || "YOUR_FORM_ID";
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus("submitting");
+    setErrorMessage("");
 
     try {
-      const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email,
           name: name || undefined,
+          source: "time-stamps.com",
           _subject: "New Time:Stamps Waitlist Signup",
         }),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         setStatus("success");
@@ -42,9 +48,13 @@ export default function WaitlistForm({
         setName("");
       } else {
         setStatus("error");
+        setErrorMessage(
+          data?.error || data?.errors?.[0]?.message || "Something went wrong. Please try again."
+        );
       }
     } catch {
       setStatus("error");
+      setErrorMessage("Network error. Please check your connection and try again.");
     }
   };
 
@@ -64,6 +74,15 @@ export default function WaitlistForm({
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-4 ${className}`}>
+      {/* Honeypot field for spam prevention - must be hidden */}
+      <input
+        type="text"
+        name="_gotcha"
+        style={{ display: "none" }}
+        tabIndex={-1}
+        autoComplete="off"
+      />
+
       <div className="flex flex-col sm:flex-row gap-3">
         <input
           type="email"
@@ -130,13 +149,11 @@ export default function WaitlistForm({
       </button>
 
       {status === "error" && (
-        <p className="text-red-400 text-sm">
-          Something went wrong. Please try again.
-        </p>
+        <p className="text-red-400 text-sm">{errorMessage}</p>
       )}
 
       <p className="text-text-secondary text-sm flex flex-wrap gap-x-4 gap-y-1">
-        <span>✓ Free forever</span>
+        <span>✓ Free beta + launch discount</span>
         <span>⚡ Chrome extension</span>
         <span>🔒 No spam</span>
       </p>

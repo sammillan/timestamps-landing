@@ -17,7 +17,7 @@ export default function FinalCTA() {
         </div>
 
         <p className="text-text-secondary text-sm">
-          Chrome extension installs in 60 seconds. Works on every YouTube video.
+          Free during beta with launch discount for early users. Chrome extension installs in 60 seconds.
         </p>
       </div>
     </section>
